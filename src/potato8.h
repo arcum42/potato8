@@ -27,6 +27,9 @@
 #include "SDL.h"
 
 #include "potato_font.h"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 extern std::array<uint8_t,0x1000> mem;
 extern std::array<uint8_t, 0x10>V;

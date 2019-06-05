@@ -39,17 +39,20 @@ std::mt19937 mt_rand;
 
 bool display_changed = true;
 
+auto potato_logger = spdlog::basic_logger_mt("potato-log", "logs/potato.txt");
+auto console = spdlog::stdout_color_mt("potato"); 
+
 bool load_file(const char *filename)
 {
 	std::ifstream f;
 	char *buffer;
 
-    printf("Opening file %s.\n", filename);
+    spdlog::get("potato")->debug("Opening file {}.", filename);
 	f.open(filename, std::ios::binary | std::ios::ate);
 
 	if (f.is_open())
 	{
-        printf("Open!\n");
+        spdlog::get("potato")->debug("Open!\n");
 
 		std::streamsize size = f.tellg();
         f.seekg(0, std::ios::beg);
@@ -61,7 +64,6 @@ bool load_file(const char *filename)
 		for (int i = 0; i < size; i++)
 		{
 			mem[0x200 + i] = buffer[i];
-            //printf("%c", buffer[i]);
 		}
 		return true;
 	}
@@ -82,7 +84,7 @@ bool main_init(const char* filename)
 	bool ret = true;
 	auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 
-	printf("Initialize.\n");
+	console->debug("Initialize.");
 
 	std::mt19937 mt_rand(seed);
 
@@ -107,7 +109,7 @@ bool main_init(const char* filename)
 
 void print_op(const char *str)
 {
-	printf("pc[0x%X] %s: op=0x%X mem(0x%X).\n", pc, str, op, mem[pc]);
+	spdlog::get("potato")->debug("pc[0x{:X}] {}: op=0x{:X} mem(0x{:X}).", pc, str, op, mem[pc]);
 }
 
 void handle_op()
@@ -117,12 +119,11 @@ void handle_op()
 	uint16_t nnn = op & 0x0fff;
 	uint8_t kk = op & 0x00ff;
 
-    /*printf("[0x%X] op: 0x%x x: 0x%x y: 0x%x nnn: 0x%x kk: 0x%x ", pc, op, x, y, nnn, kk);
+    /*spdlog::get("potato")->debug("[0x%X] op: 0x%x x: 0x%x y: 0x%x nnn: 0x%x kk: 0x%x ", pc, op, x, y, nnn, kk);
     for(int i = 0; i < 0xF; i++)
     {
-        printf("v[0x%x]=0x%x ", i, V[i]);
-    }
-    printf("\n");*/
+        spdlog::get("potato")->debug("v[0x%x]=0x%x ", i, V[i]);
+    }*/
 
 	switch (op & 0xf000)
 	{
@@ -338,7 +339,7 @@ void handle_op()
 			print_op("RND Vx, byte");
 
 			V[x] = ((mt_rand() % 0xff) & kk);
-			printf("random: %x\n", V[x]);
+			spdlog::get("potato")->debug("random: {:x}", V[x]);
 		}
 		break;
 
@@ -363,11 +364,9 @@ void handle_op()
 						if (display[loc] == 1) V[0xF] = 1;
 
 						display[loc] ^= 1;
-                        printf("*");
 					}
 				}
 			}
-            printf("\n");
 			display_changed = true;
 		}
 		break;
@@ -517,8 +516,7 @@ void main_loop()
 {
 	bool quit = false;
 
-	printf("Enter main loop.\n");
-
+	spdlog::get("potato")->debug("Enter main loop.");
 	while (!quit)
 	{
 		op = mem[pc] << 8 | mem[pc + 1];
@@ -530,7 +528,7 @@ void main_loop()
 		if (sound_timer > 0)
 		{
 			sound_timer--;
-			printf("Beep!\n");
+			spdlog::get("potato")->debug("Beep!");
 		}
 
 		if (display_changed)
@@ -542,7 +540,7 @@ void main_loop()
 		quit = potato_events();
         if (pc > 0x1000)
         {
-            printf("Out of bounds! Closing.\n");
+            spdlog::get("potato")->debug("Out of bounds! Closing.");
             quit = true;
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -551,6 +549,8 @@ void main_loop()
 
 int main(int argc, char *args[])
 {
+	spdlog::set_level(spdlog::level::debug);
+
     if (argc > 1) 
     {
         if (!main_init(args[1])) return 1;
@@ -566,7 +566,7 @@ int main(int argc, char *args[])
 
 	potato_ui_cleanup();
 
-	printf("Exit.\n");
+	spdlog::get("potato")->debug("Exit.");
 
 	return 0;
 }

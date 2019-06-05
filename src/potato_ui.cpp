@@ -43,7 +43,7 @@ bool init_potato_ui()
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
-		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+		spdlog::get("potato")->debug("SDL could not initialize! SDL_Error: {}", SDL_GetError());
 		return false;
 	}
 
@@ -60,7 +60,7 @@ bool init_potato_ui()
 	if (window == NULL)
 	{
 		// In the case that the window could not be made...
-		printf("Could not create window: %s\n", SDL_GetError());
+		spdlog::get("potato")->debug("Could not create window: {}.", SDL_GetError());
 		return false;
 	}
 
@@ -71,7 +71,7 @@ bool init_potato_ui()
 	if (renderer == NULL)
 	{
 		// In the case that the window could not be made...
-		printf("Could not create renderer: %s\n", SDL_GetError());
+		spdlog::get("potato")->debug("Could not create renderer: {}.", SDL_GetError());
 		return false;
 	}
 
@@ -90,7 +90,7 @@ void potato_ui_cleanup()
 
 void potato_ui_update()
 {
-	printf("Drawing the screen!\n");
+	spdlog::get("potato")->debug("Drawing the screen!");
 
     for (int i = 0; i < 0x40 * 0x30; i++)
     {
