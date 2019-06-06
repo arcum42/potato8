@@ -17,8 +17,10 @@ include_directories(${SDL2_INCLUDE_DIRS})
 add_executable(Potato8 
 src/potato8.cpp 
 src/potato_ui.cpp 
+src/potato_ops.cpp
 src/potato8.h 
 src/potato_ui.h 
+src/potato_ops.h
 src/potato_font.h)
 
 target_compile_features(Potato8 PUBLIC cxx_std_14)

@@ -39,9 +39,13 @@ extern std::array<uint8_t, 0x10>keys;
 extern uint8_t delay_timer;
 extern uint8_t sound_timer;
 
-extern uint16_t cur_op;
+extern uint16_t op;
+extern uint8_t sp;
 extern uint16_t idx;
 extern uint16_t pc;
 
 extern std::array<uint8_t, 0x10>stack;
 extern uint8_t stack_ptr;
+
+extern std::mt19937 mt_rand;
+extern bool display_changed;
