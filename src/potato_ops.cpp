@@ -17,22 +17,32 @@
 #include "potato8.h"
 #include "potato_ops.h"
 
+std::string print_regs()
+{
+    return std::string(fmt::format("V=(0x{:X} 0x{:X} 0x{:X} 0x{:X} 0x{:X} 0x{:X} 0x{:X} 0x{:X} 0x{:X} 0x{:X} 0x{:X} 0x{:X} 0x{:X} 0x{:X} 0x{:X} 0x{:X});", \
+    V[0], V[1], V[2], V[3], V[4], V[5], V[6], V[7], V[8], V[9], V[0xA], V[0xB], V[0xC], V[0xD], V[0xE], V[0xF]));
+}
 
 void print_op(const char *str)
 {
-	spdlog::get("potato")->debug("pc[0x{:X}] {}: op=0x{:X} mem(0x{:X}).", pc, str, op, mem[pc]);
+	spdlog::get("potato")->debug("pc[0x{:X}] {}: {} I=0x{:X}", pc, str, print_regs(), idx);
+}
+
+void print_op(std::string str)
+{
+	spdlog::get("potato")->debug("pc[0x{:X}] {}: {} I=0x{:X}", pc, str, print_regs(), idx);
 }
 
 namespace potato_chip
 {
     void unknown(uint16_t opcode)
     {
-        print_op("Unknown opcode");
+        print_op(fmt::format("Unknown opcode 0x{}", opcode));
     }
 
-    void sys(uint16_t nnn)
+    void sys(uint16_t addr)
     {
-        print_op("SYS nnn: Not yet implemented");
+        print_op(fmt::format("SYS 0x{} - Not implemented", addr));
     }
 
     void cls()
@@ -43,9 +53,7 @@ namespace potato_chip
     
     void call(uint16_t addr)
     {
-        print_op("CALL addr");
-		//printf("Calling 0x%x.\n", nnn);
-
+        print_op(fmt::format("CALL 0x{}", addr));
 		stack[sp] = pc;
 		++sp;
 		pc = addr;
@@ -54,7 +62,7 @@ namespace potato_chip
 
     void rts()
     {
-        print_op("RET");
+        print_op("RTS");
 		pc = stack[sp];
 		--sp;
 
@@ -63,170 +71,148 @@ namespace potato_chip
 
     void jump(uint16_t addr)
     {
-        print_op("JP addr");
-
-		//printf("Jumping to 0x%x.\n", nnn);
+        print_op(fmt::format("JUMP 0x{}", addr));
 		pc = addr;
 		pc -= 2; // Don't advance.
     }
 
     void jumpi(uint16_t addr)
     {
-		print_op("JP V0, addr");
-
+		print_op(fmt::format("JUMPI V(0), 0x{:X}", addr));
 		pc = V[0] + addr;
 		pc -= 2; // Don't advance
     }
 
     void ske(uint8_t reg, uint8_t num)
     {
-		print_op("SE Vx, kk");
-
+		print_op(fmt::format("SKE V(0x{:X}), 0x{:X}", reg, num));
 		if (V[reg] == num) pc += 2;
     }
 
     void skne(uint8_t reg, uint8_t num)
     {
-		print_op("SNE Vx, kk");
-
+		print_op(fmt::format("SKNE V(0x{:X}), 0x{:X}", reg, num));
 		if (V[reg] != num) pc += 2;
     }
 
     void skre(uint8_t x, uint8_t y)
     {
-		print_op("SE Vx, Vy");
-
+		print_op(fmt::format("SKRE V(0x{:X}), V(0x{:X})", x, y));
 		if (V[x] == V[y]) pc += 2;
     }
 
     void skrne(uint8_t x, uint8_t y)
     {
-		print_op("SKRNE Vx, Vy");
-
+		print_op(fmt::format("SKRNE V(0x{:X}), V(0x{:X})", x, y));
 		if (V[x] != V[y]) pc += 2;
     }
 
     void load(uint8_t reg, uint8_t num)
     {
-	    print_op("LD Vx, kk");
-
+        print_op(fmt::format("LOAD V(0x{:X}), 0x{:X}", reg, num));
 		V[reg] = num;
     }
 
     void loadi(uint16_t addr)
     {
-		print_op("LD I, addr");
+        print_op(fmt::format("LOADI 0x{:X}", addr));
 		idx = addr;
     }
 
     void math_add(uint8_t reg, uint8_t num)
     {
-        print_op("ADD Vx, kk");
-
+        print_op(fmt::format("ADD V(0x{:X}), 0x{:X}", reg, num));
 		V[reg] += num;
     }
 
     void math_move(uint8_t x, uint8_t y)
     {
-        print_op("LD Vx, Vy");
-
+        print_op(fmt::format("MOVE V(0x{:X}), V(0x{:X})", x, y));
 		V[x] = V[y];
     }
 
     void math_or(uint8_t x, uint8_t y)
     {
-        print_op("OR Vx, Vy");
-
+        print_op(fmt::format("OR V(0x{:X}), V(0x{:X})", x, y));
 		V[x] = V[x] | V[y];
     }
 
     void math_and(uint8_t x, uint8_t y)
     {
-        print_op("AND Vx, Vy");
-
+        print_op(fmt::format("AND V(0x{:X}), V(0x{:X})", x, y));
 		V[x] = V[x] & V[y];
     }
 
     void math_xor(uint8_t x, uint8_t y)
     {
-        print_op("XOR Vx, Vy");
-
+        print_op(fmt::format("XOR V(0x{:X}), V(0x{:X})", x, y));
 		V[x] = V[x] ^ V[y];
     }
 
     void math_add_r(uint8_t x, uint8_t y)
     {
-		print_op("ADD Vx, Vy");
-
+        print_op(fmt::format("ADDR V(0x{:X}), V(0x{:X})", x, y));
 		V[0xF] = (V[y] > V[x]); // Carry
 		V[x] += V[y];
     }
 
     void math_sub_r(uint8_t x, uint8_t y)
     {
-		print_op("SUB Vx, Vy");
-
+        print_op(fmt::format("SUBR V(0x{:X}), V0x{:X})", x, y));
 		V[0xF] = (V[x] > V[y]); // borrow
 		V[x] -= V[y];
     }
 
     void math_subn_r(uint8_t x, uint8_t y)
     {
-		print_op("SUBN Vx, Vy");
-
+        print_op(fmt::format("SUBN V(0x{:X}), V(0x{:X})", x, y));
 		V[0xF] = (V[y] > V[x]); // borrow
 		V[x] = V[y] - V[x];
     }
 
     void math_shr(uint8_t x)
     {
-		print_op("SHR V");
-
+        print_op(fmt::format("SHR V(0x{:X})", x));
 		V[0xF] = V[x] & 0x1;
 		V[x] >>= 1;
     }
 
     void math_shl(uint8_t x)
     {
-		print_op("SHL Vx");
-
+        print_op(fmt::format("SHL V(0x{:X})", x));
 		V[0xF] = (V[x] >> 7) & 0x1;
 		V[x] <<= 1;
     }
 
     void rand(uint8_t x, uint16_t kk)
     {
-		print_op("RND Vx, byte");
-
+        print_op(fmt::format("RND V(0x{:X}), 0x{:X}", x, kk));
 		V[x] = ((mt_rand() % 0xff) & kk);
-		spdlog::get("potato")->debug("random: {:x}", V[x]);
+		spdlog::get("potato")->debug("random: 0x{:X}", V[x]);
     }
 
     void skpr(uint8_t x)
     {
-		print_op("SKP Vx");
-
+        print_op(fmt::format("SKPR V(0x{:X})", x));
 		if (keys[x] != 0) pc += 2;
 
     }
 
     void sknp(uint8_t x)
     {
-		print_op("SKP Vx");
-
+        print_op(fmt::format("SKNP V(0x{:X})", x));
 		if (keys[x] == 0) pc += 2;
     }
 
     void moved(uint8_t x)
     {
-		print_op("LD Vx, DT");
-
+        print_op(fmt::format("MOVED V(0x{:X})", x));
 		V[x] = delay_timer;
     }
 
     void keyd(uint8_t x)
     {
-        print_op("LD Vx, K: wait for key press");
+        print_op(fmt::format("KEYD V(0x{:X})", x));
 		bool key_pressed = false;
 
 		for (int i = 0; i < 0xF; i++)
@@ -243,35 +229,31 @@ namespace potato_chip
 
     void loadd(uint8_t x)
     {
-		print_op("LD DT, Vx");
-
+        print_op(fmt::format("LOADD V(0x{:X})", x));
 		delay_timer = V[x];
     }
 
     void loads(uint8_t x)
     {
-		print_op("LD ST, Vx");
-
+        print_op(fmt::format("LOADS V(0x{:X})", x));
 		sound_timer = V[x];
     }
 
     void addi(uint8_t x)
     {
-        print_op("ADD I, Vx");
-
+        print_op(fmt::format("ADDI V(0x{:X})", x));
 		idx += V[x];
     }
 
     void ldspr(uint8_t x)
     {
-		print_op("LD F, Vx - idx = loc of sprite");
+        print_op(fmt::format("LDSPR V(0x{:X})", x));
         idx = 5 * (V[x] & 0xF);
     }
 
     void bcd(uint8_t x)
     {
-		print_op("BCD (LD B, Vx)");
-
+        print_op(fmt::format("BCD V(0x{:X})", x));
 		mem[idx] = V[x] / 100;
 		mem[idx + 1] = (V[x] / 10) % 10;
 		mem[idx + 2] = (V[x] % 100) % 10;
@@ -279,8 +261,7 @@ namespace potato_chip
 
     void stor(uint8_t x)
     {
-		print_op("LD [I], Vx");
-
+        print_op(fmt::format("STOR V(0x{:X})", x));
 		for (uint16_t i = 0; i < x; i++)
 		{
 			mem[idx + i] = V[i];
@@ -290,8 +271,7 @@ namespace potato_chip
 
     void read(uint8_t x)
     {
-		print_op("LD Vx, [I]");
-
+        print_op(fmt::format("READ V(0x{:X})", x));
 		for (uint16_t i = 0; i < x; i++)
 		{
 			V[i] = mem[idx + i];
@@ -301,28 +281,27 @@ namespace potato_chip
 
     void draw(uint8_t x, uint8_t y, uint8_t n)
     {
-			print_op("DRW Vx, Vy, n");
-			uint16_t tst = 0;
+        print_op(fmt::format("DRAW V(0x{:X}) V(0x{:X}), 0x{:X}", x, y, n));
+		uint16_t tst = 0;
 
-			V[0xF] = 0;
+		V[0xF] = 0;
 
-			for (int y2 = 0; y2 < n; y2++)
+		for (int y2 = 0; y2 < n; y2++)
+		{
+			tst = mem[idx + y2];
+
+			for (int x2 = 0; x2 < 8; x2++)
 			{
-				tst = mem[idx + y2];
-
-				for (int x2 = 0; x2 < 8; x2++)
+				if ((tst & (0x80 >> x2)) != 0)
 				{
-					if ((tst & (0x80 >> x2)) != 0)
-					{
-                        uint32_t loc = (x + x2 + ((y + y2) * 0x40));
+                    uint32_t loc = (x + x2 + ((y + y2) * 0x40));
 
-						if (display[loc] == 1) V[0xF] = 1;
+					if (display[loc] == 1) V[0xF] = 1;
 
-						display[loc] ^= 1;
-					}
+					display[loc] ^= 1;
 				}
 			}
-			display_changed = true;
-
+		}
+		display_changed = true;
     }
 }
