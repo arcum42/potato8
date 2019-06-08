@@ -110,12 +110,13 @@ bool main_init(const char* filename)
 
 void handle_op()
 {
-	uint8_t x = op & 0x0f00 >> 8;
-	uint8_t y = op & 0x00f0 >> 4;
-	uint16_t nnn = op & 0x0fff;
-	uint8_t kk = op & 0x00ff;
-	uint8_t n = op & 0x000F;
+	uint8_t x = (op & 0x0f00) >> 8;
+	uint8_t y = (op & 0x00f0) >> 4;
+	uint16_t nnn = (op & 0x0fff);
+	uint8_t kk = (op & 0x00ff);
+	uint8_t n = (op & 0x000F);
 
+	spdlog::get("potato")->debug("opcode = 0x{:X}, x:0x{:X}, y:0x{:X}, nnn:0x{:X}, kk:{:X}, n:0x{:X}", op, x, y, nnn, kk, n);
     /*spdlog::get("potato")->debug("[0x{:X}] op: 0x{:X} x: 0x{:X} y: 0x{;X} nnn: 0x{:X} kk: 0x{:X} ", pc, op, x, y, nnn, kk);
     for(int i = 0; i < 0xF; i++)
     {

@@ -294,7 +294,8 @@ namespace potato_chip
 			{
 				if ((tst & (0x80 >> x2)) != 0)
 				{
-                    uint32_t loc = (x + x2 + ((y + y2) * 0x40));
+                    uint32_t loc = (V[x] + x2 + ((V[y] + y2) * 0x40));
+                    //spdlog::get("potato")->debug("l -> 0x{:X}", loc);
 
 					if (display[loc] == 1) V[0xF] = 1;
 
