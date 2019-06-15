@@ -31,6 +31,24 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
+class op_field
+{
+    private:
+        uint16_t op;
+
+    public:
+        op_field(uint16_t i) { op = i; }
+        ~op_field() {op = 0; }
+
+        uint8_t op_code() { return (op & 0xf000) >> 12; }
+        uint8_t x() { return (op & 0x0f00) >> 8; }
+        uint8_t y() { return (op & 0x00f0) >> 4; }
+        uint8_t n() { return (op & 0x000f); }
+
+        uint16_t nnn() { return (op & 0x0fff); }
+        uint8_t kk() { return (op & 0x00ff); }
+};
+
 extern std::array<uint8_t,0x1000> mem;
 extern std::array<uint8_t, 0x10>V;
 extern std::array<uint8_t, 0x40 * 0x30> display;
@@ -39,7 +57,7 @@ extern std::array<uint8_t, 0x10>keys;
 extern uint8_t delay_timer;
 extern uint8_t sound_timer;
 
-extern uint16_t op;
+extern op_field op;
 extern uint8_t sp;
 extern uint16_t idx;
 extern uint16_t pc;

@@ -28,7 +28,7 @@ std::array<uint8_t, 0x40 * 0x30> display = {0};
 std::array<uint8_t, 0x10> keys = {0};
 std::array<uint8_t, 0x10> stack = {0};
 
-uint16_t op = 0;
+op_field op = 0;
 uint8_t sp = 0;
 uint16_t idx = 0;
 uint16_t pc = 0;
@@ -110,94 +110,84 @@ bool main_init(const char* filename)
 
 void handle_op()
 {
-	uint8_t x = (op & 0x0f00) >> 8;
-	uint8_t y = (op & 0x00f0) >> 4;
-	uint16_t nnn = (op & 0x0fff);
-	uint8_t kk = (op & 0x00ff);
-	uint8_t n = (op & 0x000F);
+	spdlog::get("potato")->debug("opcode = 0x{:X}, x:0x{:X}, y:0x{:X}, nnn:0x{:X}, kk:{:X}, n:0x{:X}", op.op_code(), op.x(), op.y(), op.nnn(), op.kk(), op.n());
 
-	spdlog::get("potato")->debug("opcode = 0x{:X}, x:0x{:X}, y:0x{:X}, nnn:0x{:X}, kk:{:X}, n:0x{:X}", op, x, y, nnn, kk, n);
-    /*spdlog::get("potato")->debug("[0x{:X}] op: 0x{:X} x: 0x{:X} y: 0x{;X} nnn: 0x{:X} kk: 0x{:X} ", pc, op, x, y, nnn, kk);
-    for(int i = 0; i < 0xF; i++)
-    {
-        spdlog::get("potato")->debug("v[0x{:X}]=0x{:X} ", i, V[i]);
-    }*/
 
-	switch (op & 0xf000)
+	switch (op.op_code())
 	{
-		case 0x0000:
-			switch (op & 0xff)
+		case 0x0:
+			switch (op.kk())
 			{
-				case 0x00: potato_chip::sys(nnn); break;
+				case 0x00: potato_chip::sys(); break;
 				case 0xE0: potato_chip::cls(); break;
 				case 0xEE: potato_chip::rts(); break;
-				default: potato_chip::unknown(op); break;
+				default: potato_chip::unknown(); break;
 			}
 			break;
 
-		case 0x1000: potato_chip::jump(nnn); break;
-		case 0x2000: potato_chip::call(nnn); break;
-		case 0x3000: potato_chip::ske(x, kk); break;
-		case 0x4000: potato_chip::skne(x, kk); break;
-		case 0x5000: potato_chip::skre(x, y); break;
+		case 0x1: potato_chip::jump(); break;
+		case 0x2: potato_chip::call(); break;
+		case 0x3: potato_chip::ske(); break;
+		case 0x4: potato_chip::skne(); break;
+		case 0x5: potato_chip::skre(); break;
 
-		case 0x6000: potato_chip::load(x, kk); break;
-		case 0x7000: potato_chip::math_add(x, kk); break;
+		case 0x6: potato_chip::load(); break;
+		case 0x7: potato_chip::math_add(); break;
 
-		case 0x8000:
+		case 0x8:
 		{
-			switch (op & 0xf)
+			switch (op.n())
 			{
-				case 0x0: potato_chip::math_move(x, y); break;
-				case 0x1: potato_chip::math_or(x, y); break;
-				case 0x2: potato_chip::math_and(x, y); break;
-				case 0x3: potato_chip::math_xor(x, y); break;
-				case 0x4: potato_chip::math_add_r(x, y); break;
-				case 0x5: potato_chip::math_sub_r(x, y); break;
-				case 0x6: potato_chip::math_shr(x); break;
-				case 0x7: potato_chip::math_subn_r(x, y); break;
-				case 0xE: potato_chip::math_shr(x); break;
-				default:  potato_chip::unknown(op); break;
+				case 0x0: potato_chip::math_move(); break;
+				case 0x1: potato_chip::math_or(); break;
+				case 0x2: potato_chip::math_and(); break;
+				case 0x3: potato_chip::math_xor(); break;
+				case 0x4: potato_chip::math_add_r(); break;
+				case 0x5: potato_chip::math_sub_r(); break;
+				case 0x6: potato_chip::math_shr(); break;
+				case 0x7: potato_chip::math_subn_r(); break;
+				case 0xE: potato_chip::math_shr(); break;
+				default:  potato_chip::unknown(); break;
 			}
 		}
 		break;
 
-		case 0x9000: potato_chip::skrne(x,y); break;
-		case 0xA000: potato_chip::loadi(nnn); break;
-		case 0xB000: potato_chip::jumpi(nnn); break;
-		case 0xC000: potato_chip::rand(x, kk); break;
-		case 0xD000: potato_chip::draw(x, y, n); break;
+		case 0x9: potato_chip::skrne(); break;
+		case 0xA: potato_chip::loadi(); break;
+		case 0xB: potato_chip::jumpi(); break;
+		case 0xC: potato_chip::rand(); break;
+		case 0xD: potato_chip::draw(); break;
 
-		case 0xE000:
+		case 0xE:
 		{
-			switch (op & 0xff)
+			switch (op.kk())
 			{
-				case 0x9E: potato_chip::skpr(x); break;
-				case 0xA1: potato_chip::sknp(x); break;
-				default: potato_chip::unknown(op); break;
+				case 0x9E: potato_chip::skpr(); break;
+				case 0xA1: potato_chip::sknp(); break;
+				default: potato_chip::unknown(); break;
 			}
 		}
 		break;
 
-		case 0xF000:
+		case 0xF:
 		{
-			switch (op & 0xff)
+			switch (op.kk())
 			{
-				case 0x07: potato_chip::moved(x); break;
-				case 0xA: potato_chip::keyd(x); break;
-				case 0x15: potato_chip::loadd(x); break;
-				case 0x18: potato_chip::loadd(x); break;
-				case 0x1E: potato_chip::addi(x); break;
-				case 0x29: potato_chip::ldspr(x); break;
-				case 0x33: potato_chip::bcd(x); break;
-				case 0x55: potato_chip::stor(x); break;
-				case 0x65: potato_chip::read(x); break;
+				case 0x07: potato_chip::moved(); break;
+				case 0xA: potato_chip::keyd(); break;
+				case 0x15: potato_chip::loadd(); break;
+				case 0x18: potato_chip::loadd(); break;
+				case 0x1E: potato_chip::addi(); break;
+				case 0x29: potato_chip::ldspr(); break;
+				case 0x33: potato_chip::bcd(); break;
+				case 0x55: potato_chip::stor(); break;
+				case 0x65: potato_chip::read(); break;
 
-				default: potato_chip::unknown(op); break;
+				default: potato_chip::unknown(); break;
 			}
 		}
 
-		default: potato_chip::unknown(op); break;
+		default: potato_chip::unknown(); break;
 	}
 }
 
@@ -232,7 +222,7 @@ void main_loop()
             spdlog::get("potato")->debug("Out of bounds! Closing.");
             quit = true;
         }
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        //std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 }
 
