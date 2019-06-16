@@ -16,8 +16,10 @@
 
 extern void print_op(const char *str);
 
+
 namespace potato_chip
 {
+    extern void init_ops();
     extern void sys();
     extern void cls();
     extern void call();

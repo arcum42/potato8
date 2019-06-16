@@ -101,6 +101,7 @@ bool main_init(const char* filename)
 		mem[i] = potato_font[i];
 	}
 
+	potato_chip::init_ops();
     //random_gfx();
 
 	if (ret) ret = init_potato_ui();
