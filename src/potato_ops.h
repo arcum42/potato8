@@ -54,4 +54,9 @@ namespace potato_chip
     extern void stor();
     extern void read();
     extern void draw();
+    extern void handle_special_ops();
+    extern void handle_math_ops();
+    extern void handle_misc_e_ops();
+    extern void handle_misc_f_ops();
+    extern void handle_op();
 }

@@ -305,4 +305,94 @@ namespace potato_chip
 		}
 		display_changed = true;
     }
+
+void handle_special_ops()
+{
+	switch (op.kk())
+	{
+		case 0x00: sys(); break;
+		case 0xE0: cls(); break;
+		case 0xEE: rts(); break;
+		default: unknown(); break;
+	}
+}
+
+void handle_math_ops()
+{
+	switch (op.n())
+	{
+		case 0x0: math_move(); break;
+		case 0x1: math_or(); break;
+		case 0x2: math_and(); break;
+		case 0x3: math_xor(); break;
+		case 0x4: math_add_r(); break;
+		case 0x5: math_sub_r(); break;
+		case 0x6: math_shr(); break;
+		case 0x7: math_subn_r(); break;
+		case 0xE: math_shr(); break;
+		default:  unknown(); break;
+	}
+}
+
+void handle_misc_e_ops()
+{
+	switch (op.kk())
+	{
+		case 0x9E: skpr(); break;
+		case 0xA1: sknp(); break;
+		default: unknown(); break;
+	}
+}
+
+void handle_misc_f_ops()
+{
+	switch (op.kk())
+	{
+		case 0x07: moved(); break;
+		case 0xA: keyd(); break;
+		case 0x15: loadd(); break;
+		case 0x18: loadd(); break;
+		case 0x1E: addi(); break;
+		case 0x29: ldspr(); break;
+		case 0x33: bcd(); break;
+		case 0x55: stor(); break;
+		case 0x65: read(); break;
+
+		default: unknown(); break;
+	}
+}
+
+void handle_op()
+{
+	spdlog::get("potato")->debug("opcode = 0x{:X}, x:0x{:X}, y:0x{:X}, nnn:0x{:X}, kk:{:X}, n:0x{:X}", op.op_code(), op.x(), op.y(), op.nnn(), op.kk(), op.n());
+
+
+	switch (op.op_code())
+	{
+		case 0x0: handle_special_ops(); break;
+		case 0x1: jump(); break;
+		case 0x2: call(); break;
+		case 0x3: ske(); break;
+		case 0x4: skne(); break;
+		case 0x5: skre(); break;
+
+		case 0x6: load(); break;
+		case 0x7: math_add(); break;
+
+		case 0x8: handle_math_ops(); break;
+
+		case 0x9: skrne(); break;
+		case 0xA: loadi(); break;
+		case 0xB: jumpi(); break;
+		case 0xC: rand(); break;
+		case 0xD: draw(); break;
+
+		case 0xE: handle_misc_e_ops(); break;
+
+		case 0xF: handle_misc_f_ops(); break;
+
+		default: unknown(); break;
+	}
+}
+
 }
